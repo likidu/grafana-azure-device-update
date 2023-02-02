@@ -25,6 +25,32 @@
       "role": "Admin",
       "addToNav": true,
       "defaultNav": true
+    },
+    {
+      "type": "dashboard",
+      "name": "Example dashboard 1",
+      "path": "dashboards/example-dashboard1.json",
+      "role": "Admin",
+      "addToNav": true,
+      "uid": "Av57mRHVz"
+    },
+    {
+      "type": "datasource",
+      "name": "Azure Device Update for IoT Hub"
+    }
+  ],
+  "routes": [
+    {
+      "path": "list-updates",
+      "url": "https://pomelo-adu.api.adu.microsoft.com/deviceUpdate/id/updates?api-version=2022-10-01",
+      "tokenAuth": {
+        "url": "https://api.example.com/v1/oauth/token",
+        "params": {
+          "grant_type": "client_credentials",
+          "client_id": "{{ .SecureJsonData.clientId }}",
+          "client_secret": "{{ .SecureJsonData.clientSecret }}"
+        }
+      }
     }
   ],
   "dependencies": {
