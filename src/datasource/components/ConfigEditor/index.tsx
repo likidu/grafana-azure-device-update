@@ -1,25 +1,42 @@
 import { DataSourcePluginOptionsEditorProps } from '@grafana/data';
-import React, { useMemo } from 'react';
+import React, { useCallback, useMemo } from 'react';
 
 import { AduDataSourceOptions, AduDataSourceSecureOptions } from '../../types';
 import { getCredentials, updateCredentials } from './AzureCredentials';
 import AzureCredentialsConfig from './AzureCredentialsConfig';
-import { AzureCredentials } from './AzureCredentialsTypes';
+import { AzureAccessToken } from './AzureCredentialsTypes';
 import ConfigHelp from './ConfigHelp';
+import EndpointConfig from './EndpointConfig';
 
 interface Props extends DataSourcePluginOptionsEditorProps<AduDataSourceOptions, AduDataSourceSecureOptions> {}
 
 const ConfigEditor: React.FC<Props> = (props) => {
   const { options, onOptionsChange } = props;
+  const { jsonData } = options;
 
   const credentials = useMemo(() => getCredentials(options), [options]);
 
-  const onCredentialsChange = (credentials: AzureCredentials): void => {
+  const updateJsonData = useCallback(
+    <T extends keyof AduDataSourceOptions>(fieldName: T, value: AduDataSourceOptions[T]) => {
+      onOptionsChange({
+        ...options,
+        jsonData: {
+          ...jsonData,
+          [fieldName]: value,
+        },
+      });
+    },
+    [jsonData, onOptionsChange, options]
+  );
+
+  const onCredentialsChange = (credentials: AzureAccessToken): void => {
     onOptionsChange(updateCredentials(options, credentials));
   };
   return (
     <div>
       <ConfigHelp />
+
+      <EndpointConfig options={options} onOptionsChange={onOptionsChange} updateJsonData={updateJsonData} />
 
       <h3 className="page-heading">Authentication</h3>
       <AzureCredentialsConfig credentials={credentials} onCredentialsChange={onCredentialsChange} />

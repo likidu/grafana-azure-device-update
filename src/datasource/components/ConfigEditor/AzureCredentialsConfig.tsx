@@ -1,51 +1,31 @@
 import { Button, InlineField, Input } from '@grafana/ui';
 import React, { ChangeEvent, FunctionComponent } from 'react';
 
-import { AzureCredentials } from './AzureCredentialsTypes';
+import { AzureAccessToken } from './AzureCredentialsTypes';
 
 interface Props {
-  credentials: AzureCredentials;
-  onCredentialsChange: (updatedCredentials: AzureCredentials) => void;
+  credentials: AzureAccessToken;
+  onCredentialsChange: (updatedCredentials: AzureAccessToken) => void;
 }
 
 const AzureCredentialsConfig: FunctionComponent<Props> = (props) => {
   const { credentials, onCredentialsChange } = props;
 
-  const onTenantIdChange = (event: ChangeEvent<HTMLInputElement>) => {
+  const onAccessTokenChange = (event: ChangeEvent<HTMLInputElement>) => {
     if (onCredentialsChange) {
-      const updated: AzureCredentials = {
+      const updated: AzureAccessToken = {
         ...credentials,
-        tenantId: event.target.value,
+        accessToken: event.target.value,
       };
       onCredentialsChange(updated);
     }
   };
 
-  const onClientIdChange = (event: ChangeEvent<HTMLInputElement>) => {
+  const onAccessTokenReset = () => {
     if (onCredentialsChange) {
-      const updated: AzureCredentials = {
+      const updated: AzureAccessToken = {
         ...credentials,
-        clientId: event.target.value,
-      };
-      onCredentialsChange(updated);
-    }
-  };
-
-  const onClientSecretChange = (event: ChangeEvent<HTMLInputElement>) => {
-    if (onCredentialsChange) {
-      const updated: AzureCredentials = {
-        ...credentials,
-        clientSecret: event.target.value,
-      };
-      onCredentialsChange(updated);
-    }
-  };
-
-  const onClientSecretReset = () => {
-    if (onCredentialsChange) {
-      const updated: AzureCredentials = {
-        ...credentials,
-        clientSecret: '',
+        accessToken: '',
       };
       onCredentialsChange(updated);
     }
@@ -53,55 +33,29 @@ const AzureCredentialsConfig: FunctionComponent<Props> = (props) => {
 
   return (
     <div>
-      <InlineField label="Directory (tenant) ID" labelWidth={18} htmlFor="aad-tenant-id">
-        <div className="width-15">
-          <Input
-            id="aad-tenant-id"
-            className="width-30"
-            aria-label="Tenant ID"
-            placeholder="XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
-            value={credentials.tenantId || ''}
-            onChange={onTenantIdChange}
-          />
-        </div>
-      </InlineField>
-
-      <InlineField label="Application (client) ID" labelWidth={18} htmlFor="aad-client-id">
-        <div className="width-15">
-          <Input
-            id="aad-client-id"
-            className="width-30"
-            aria-label="Client ID"
-            placeholder="XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
-            value={credentials.clientId || ''}
-            onChange={onClientIdChange}
-          />
-        </div>
-      </InlineField>
-
-      {typeof credentials.clientSecret === 'symbol' ? (
-        <InlineField label="Client Secret" labelWidth={18} htmlFor="aad-client-secret-configured">
+      {typeof credentials.accessToken === 'symbol' ? (
+        <InlineField label="Access Token" labelWidth={18} htmlFor="adu-access-token-configured">
           <div className="width-30" style={{ display: 'flex', gap: '4px' }}>
             <Input
               id="aad-client-secret-configured"
-              aria-label="Client Secret"
+              aria-label="Access Token"
               placeholder="configured"
               disabled={true}
             />
-            <Button variant="secondary" type="button" onClick={onClientSecretReset}>
+            <Button variant="secondary" type="button" onClick={onAccessTokenReset}>
               Reset
             </Button>
           </div>
         </InlineField>
       ) : (
-        <InlineField label="Client Secret" labelWidth={18} htmlFor="aad-client-secret">
+        <InlineField label="Access Token" labelWidth={18} htmlFor="adu-access-token">
           <Input
             id="aad-client-secret"
             className="width-30"
-            aria-label="Client Secret"
+            aria-label="Access Token"
             placeholder="XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
-            value={credentials.clientSecret || ''}
-            onChange={onClientSecretChange}
+            value={credentials.accessToken || ''}
+            onChange={onAccessTokenChange}
           />
         </InlineField>
       )}

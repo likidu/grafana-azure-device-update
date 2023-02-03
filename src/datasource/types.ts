@@ -13,7 +13,8 @@ export interface DataPoint {
   Time: number;
   Value: number;
 }
-export interface DataSourceResponse {
+
+export interface AduDataSourceResponse {
   datapoints: DataPoint[];
 }
 
@@ -21,12 +22,13 @@ export interface DataSourceResponse {
  * These are options configured for each DataSource instance
  */
 export interface AduDataSourceOptions extends DataSourceJsonData {
-  path?: string;
+  endpoint: string;
+  instanceName: string;
 }
 
 /**
  * Value that is used in the backend, but never sent over HTTP to the frontend
  */
 export interface AduDataSourceSecureOptions {
-  azureClientSecret?: string;
+  azureAccessToken?: string;
 }

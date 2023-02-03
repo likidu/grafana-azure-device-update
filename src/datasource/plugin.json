@@ -4,6 +4,18 @@
   "name": "Azure Device Update for IoT Hub",
   "id": "azure-device-update-datasource",
   "metrics": true,
+  "routes": [
+    {
+      "path": "list-devices",
+      "url": "https://{{ .JsonData.endpoint }}/deviceUpdate/{{ .JsonData.instanceName }}/updates?api-version=2022-10-01",
+      "headers": [{ "name": "Authorization", "content": "Bearer {{ .SecureJsonData.apiToken }}" }]
+    },
+    {
+      "path": "list-updates",
+      "url": "https://{{ .JsonData.endpoint }}/deviceUpdate/{{ .JsonData.instanceName }}/management/devices?api-version=2022-10-01",
+      "headers": [{ "name": "Authorization", "content": "Bearer {{ .SecureJsonData.apiToken }}" }]
+    }
+  ],
   "info": {
     "description": "",
     "author": {

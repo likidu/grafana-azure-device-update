@@ -1,25 +1,25 @@
 import { DataSourceSettings } from '@grafana/data';
 
-import { AzureCredentials, ConcealedSecret } from './AzureCredentialsTypes';
+import { AzureAccessToken, ConcealedToken } from './AzureCredentialsTypes';
 
-const concealed: ConcealedSecret = Symbol('Concealed client secret');
-const concealedLegacy: ConcealedSecret = Symbol('Concealed legacy client secret');
+const concealed: ConcealedToken = Symbol('Concealed client secret');
+const concealedLegacy: ConcealedToken = Symbol('Concealed legacy client secret');
 
-function getSecret(options: DataSourceSettings<any, any>): undefined | string | ConcealedSecret {
-  if (options.secureJsonFields.azureClientSecret) {
+function getSecret(options: DataSourceSettings<any, any>): undefined | string | ConcealedToken {
+  if (options.secureJsonFields.azureAccessToken) {
     // The secret is concealed on server
     return concealed;
-  } else if (options.secureJsonFields.clientSecret) {
+  } else if (options.secureJsonFields.accessToken) {
     // A legacy secret field was preserved during migration
     return concealedLegacy;
   } else {
-    const secret = options.secureJsonData?.azureClientSecret;
-    return typeof secret === 'string' && secret.length > 0 ? secret : undefined;
+    const token = options.secureJsonData?.azureAccessToken;
+    return typeof token === 'string' && token.length > 0 ? token : undefined;
   }
 }
 
-export function getCredentials(options: DataSourceSettings<any, any>): AzureCredentials {
-  const credentials = options.jsonData.azureCredentials as AzureCredentials | undefined;
+export function getCredentials(options: DataSourceSettings<any, any>): AzureAccessToken {
+  const credentials = options.jsonData.azureCredentials as AzureAccessToken | undefined;
 
   // If no credentials saved then return default credentials
   if (!credentials) {
@@ -27,47 +27,28 @@ export function getCredentials(options: DataSourceSettings<any, any>): AzureCred
   }
 
   return {
-    tenantId: credentials.tenantId,
-    clientId: credentials.clientId,
-    clientSecret: getSecret(options),
+    accessToken: getSecret(options),
   };
 }
 
 export function updateCredentials(
   options: DataSourceSettings<any, any>,
-  credentials: AzureCredentials
+  credentials: AzureAccessToken
 ): DataSourceSettings<any, any> {
-  // Cleanup legacy credentials
-  options = {
-    ...options,
-    jsonData: {
-      ...options.jsonData,
-      tenantId: undefined,
-      clientId: undefined,
-    },
-  };
-
   // Apply updated credentials
   return (options = {
     ...options,
-    jsonData: {
-      ...options.jsonData,
-      azureCredentials: {
-        tenantId: credentials.tenantId,
-        clientId: credentials.clientId,
-      },
-    },
     secureJsonData: {
       ...options.secureJsonData,
-      azureClientSecret:
-        typeof credentials.clientSecret === 'string' && credentials.clientSecret.length > 0
-          ? credentials.clientSecret
+      azureAccessToken:
+        typeof credentials.accessToken === 'string' && credentials.accessToken.length > 0
+          ? credentials.accessToken
           : undefined,
     },
     secureJsonFields: {
       ...options.secureJsonFields,
-      azureClientSecret: credentials.clientSecret === concealed,
-      clientSecret: credentials.clientSecret === concealedLegacy,
+      azureAccessToken: credentials.accessToken === concealed,
+      accessToken: credentials.accessToken === concealedLegacy,
     },
   });
 }

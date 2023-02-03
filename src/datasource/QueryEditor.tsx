@@ -3,12 +3,12 @@ import defaults from 'lodash/defaults';
 import { QueryEditorProps } from '@grafana/data';
 import { LegacyForms } from '@grafana/ui';
 import React, { ChangeEvent, PureComponent } from 'react';
-import { DataSource } from './DataSource';
-import { defaultQuery, MyDataSourceOptions, MyQuery } from './types';
+import { DataSource } from './TheDataSource';
+import { AduDataSourceOptions, defaultQuery, MyQuery } from './types';
 
 const { FormField } = LegacyForms;
 
-type Props = QueryEditorProps<DataSource, MyQuery, MyDataSourceOptions>;
+type Props = QueryEditorProps<DataSource, MyQuery, AduDataSourceOptions>;
 
 export class QueryEditor extends PureComponent<Props> {
   onQueryTextChange = (event: ChangeEvent<HTMLInputElement>) => {
