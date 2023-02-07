@@ -4,7 +4,7 @@ import React, { useCallback, useMemo } from 'react';
 import { AduDataSourceOptions, AduDataSourceSecureOptions } from '../../types';
 import { getCredentials, updateCredentials } from './AzureCredentials';
 import AzureCredentialsConfig from './AzureCredentialsConfig';
-import { AzureAccessToken } from './AzureCredentialsTypes';
+import { AzureCredentials } from './AzureCredentialsTypes';
 import ConfigHelp from './ConfigHelp';
 import EndpointConfig from './EndpointConfig';
 
@@ -29,7 +29,7 @@ const ConfigEditor: React.FC<Props> = (props) => {
     [jsonData, onOptionsChange, options]
   );
 
-  const onCredentialsChange = (credentials: AzureAccessToken): void => {
+  const onCredentialsChange = (credentials: AzureCredentials): void => {
     onOptionsChange(updateCredentials(options, credentials));
   };
   return (

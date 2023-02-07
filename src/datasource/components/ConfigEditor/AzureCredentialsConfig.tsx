@@ -1,11 +1,11 @@
 import { Button, InlineField, Input } from '@grafana/ui';
 import React, { ChangeEvent, FunctionComponent } from 'react';
 
-import { AzureAccessToken } from './AzureCredentialsTypes';
+import { AzureCredentials } from './AzureCredentialsTypes';
 
 interface Props {
-  credentials: AzureAccessToken;
-  onCredentialsChange: (updatedCredentials: AzureAccessToken) => void;
+  credentials: AzureCredentials;
+  onCredentialsChange: (updatedCredentials: AzureCredentials) => void;
 }
 
 const AzureCredentialsConfig: FunctionComponent<Props> = (props) => {
@@ -13,7 +13,7 @@ const AzureCredentialsConfig: FunctionComponent<Props> = (props) => {
 
   const onAccessTokenChange = (event: ChangeEvent<HTMLInputElement>) => {
     if (onCredentialsChange) {
-      const updated: AzureAccessToken = {
+      const updated: AzureCredentials = {
         ...credentials,
         accessToken: event.target.value,
       };
@@ -23,7 +23,7 @@ const AzureCredentialsConfig: FunctionComponent<Props> = (props) => {
 
   const onAccessTokenReset = () => {
     if (onCredentialsChange) {
-      const updated: AzureAccessToken = {
+      const updated: AzureCredentials = {
         ...credentials,
         accessToken: '',
       };
@@ -54,7 +54,7 @@ const AzureCredentialsConfig: FunctionComponent<Props> = (props) => {
             className="width-30"
             aria-label="Access Token"
             placeholder="XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
-            value={credentials.accessToken || ''}
+            value={credentials.accessToken}
             onChange={onAccessTokenChange}
           />
         </InlineField>

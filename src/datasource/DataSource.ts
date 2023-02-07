@@ -24,9 +24,10 @@ class DataSource extends DataSourceApi<MyQuery, AduDataSourceOptions> {
   }
 
   query(options: DataQueryRequest<MyQuery>): Observable<DataQueryResponse> {
+    console.log(options.targets);
     const observableResponses: Array<Observable<DataQueryResponse>> = options.targets.map((query) => {
       const { refId } = query;
-      return this.request<UpdateList>('list-updates').pipe(
+      return this.request<UpdateList>('list-updates', 'GET', 'api-version=2022-10-01').pipe(
         map((response) => this.handleTimeSeriesResponse(response, refId))
       );
     });
@@ -49,7 +50,7 @@ class DataSource extends DataSourceApi<MyQuery, AduDataSourceOptions> {
   async testDatasource() {
     const defaultErrorMessage = 'Cannot connect to API';
 
-    const response = this.request<UpdateList>('list-updates');
+    const response = this.request<UpdateList>('list-updates', 'GET', 'api-version=2022-10-01');
     const respSubscriber = response.subscribe({
       next(val) {
         if (val.status === 200) {

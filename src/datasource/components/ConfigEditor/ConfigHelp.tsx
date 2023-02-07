@@ -6,7 +6,7 @@ const ConfigHelp: React.FC<ConfigHelpProps> = () => {
   return (
     <div className="gf-form-group">
       <div className="grafana-info-box">
-        <h5>Configuring Azure and your Azure Data Explorer Database</h5>
+        <h3>Configuring Azure and your Azure Device Update for IoT Hub</h3>
         <h5>1. Create an AAD application</h5>
         <p>
           Details on how to do create one via the Azure portal or with the Azure CLI can be found{' '}
@@ -23,7 +23,7 @@ const ConfigHelp: React.FC<ConfigHelpProps> = () => {
         <h5>2. Connect the AAD Application to a database user</h5>
         <p>
           Navigate to the Azure Data Explorer Web UI via the Azure Portal. The AAD application that you created in step
-          1 needs to be given viewer access to your Azure Data Explorer database. This is done using the dot command{' '}
+          1 needs to be given viewer access to your Azure Device Update for IoT Hub. This is done using the dot command{' '}
           <i>add</i>:
         </p>
 

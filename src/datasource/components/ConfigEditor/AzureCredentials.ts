@@ -1,6 +1,6 @@
 import { DataSourceSettings } from '@grafana/data';
 
-import { AzureAccessToken, ConcealedToken } from './AzureCredentialsTypes';
+import { AzureCredentials, ConcealedToken } from './AzureCredentialsTypes';
 
 const concealed: ConcealedToken = Symbol('Concealed client secret');
 const concealedLegacy: ConcealedToken = Symbol('Concealed legacy client secret');
@@ -18,26 +18,33 @@ function getSecret(options: DataSourceSettings<any, any>): undefined | string | 
   }
 }
 
-export function getCredentials(options: DataSourceSettings<any, any>): AzureAccessToken {
-  const credentials = options.jsonData.azureCredentials as AzureAccessToken | undefined;
+export function getCredentials(options: DataSourceSettings<any, any>): AzureCredentials {
+  const credentials = options.jsonData.azureCredentials as AzureCredentials | undefined;
 
   // If no credentials saved then return default credentials
   if (!credentials) {
-    return {};
+    return { authType: 'clientsecret' };
   }
 
   return {
+    authType: credentials.authType,
     accessToken: getSecret(options),
   };
 }
 
 export function updateCredentials(
   options: DataSourceSettings<any, any>,
-  credentials: AzureAccessToken
+  credentials: AzureCredentials
 ): DataSourceSettings<any, any> {
   // Apply updated credentials
-  return (options = {
+  options = {
     ...options,
+    jsonData: {
+      ...options.jsonData,
+      azureCredentials: {
+        authType: credentials.authType,
+      },
+    },
     secureJsonData: {
       ...options.secureJsonData,
       azureAccessToken:
@@ -50,5 +57,7 @@ export function updateCredentials(
       azureAccessToken: credentials.accessToken === concealed,
       accessToken: credentials.accessToken === concealedLegacy,
     },
-  });
+  };
+
+  return options;
 }

@@ -3,7 +3,7 @@ import defaults from 'lodash/defaults';
 import { QueryEditorProps } from '@grafana/data';
 import { LegacyForms } from '@grafana/ui';
 import React, { ChangeEvent, PureComponent } from 'react';
-import { DataSource } from './TheDataSource';
+import DataSource from './DataSource';
 import { AduDataSourceOptions, defaultQuery, MyQuery } from './types';
 
 const { FormField } = LegacyForms;
