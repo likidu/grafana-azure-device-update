@@ -12,7 +12,12 @@
     },
     {
       "path": "list-devices",
-      "url": "https://{{ .JsonData.endpoint }}/deviceUpdate/{{ .JsonData.instanceName }}/management/devices?api-version=2022-10-01",
+      "url": "https://{{ .JsonData.endpoint }}/deviceUpdate/{{ .JsonData.instanceName }}/management/devices",
+      "headers": [{ "name": "Authorization", "content": "Bearer {{ .SecureJsonData.azureAccessToken }}" }]
+    },
+    {
+      "path": "list-device-classes",
+      "url": "https://{{ .JsonData.endpoint }}/deviceUpdate/{{ .JsonData.instanceName }}/management/deviceClasses",
       "headers": [{ "name": "Authorization", "content": "Bearer {{ .SecureJsonData.azureAccessToken }}" }]
     }
   ],

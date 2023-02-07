@@ -1,16 +1,17 @@
+import defaults from 'lodash/defaults';
+
 import {
+  DataFrame,
   DataQueryRequest,
   DataQueryResponse,
   DataSourceApi,
   DataSourceInstanceSettings,
-  FieldType,
-  MutableDataFrame,
 } from '@grafana/data';
 import { FetchResponse, getBackendSrv, isFetchError } from '@grafana/runtime';
 import { map, merge, Observable } from 'rxjs';
 
 import { UpdateList } from './models';
-import { AduDataSourceOptions, MyQuery } from './types';
+import { AduDataSourceOptions, defaultQuery, MyQuery } from './types';
 
 type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE';
 
@@ -24,10 +25,10 @@ class DataSource extends DataSourceApi<MyQuery, AduDataSourceOptions> {
   }
 
   query(options: DataQueryRequest<MyQuery>): Observable<DataQueryResponse> {
-    console.log(options.targets);
-    const observableResponses: Array<Observable<DataQueryResponse>> = options.targets.map((query) => {
-      const { refId } = query;
-      return this.request<UpdateList>('list-updates', 'GET', 'api-version=2022-10-01').pipe(
+    const observableResponses: Array<Observable<DataQueryResponse>> = options.targets.map((target) => {
+      const query = defaults(target, defaultQuery);
+      const { refId, apiPath } = query;
+      return this.request<UpdateList>(apiPath, 'GET').pipe(
         map((response) => this.handleTimeSeriesResponse(response, refId))
       );
     });
@@ -38,7 +39,7 @@ class DataSource extends DataSourceApi<MyQuery, AduDataSourceOptions> {
 
   request<T>(path: string, method: HttpMethod = 'GET', params?: string): Observable<FetchResponse<T>> {
     const result = getBackendSrv().fetch<T>({
-      url: `${this.instanceUrl}/${path}${params?.length ? `?${params}` : ''}`,
+      url: `${this.instanceUrl}/${path}?api-version=2022-10-01${params?.length ? `&${params}` : ''}`,
       method,
     });
     return result;
@@ -50,7 +51,7 @@ class DataSource extends DataSourceApi<MyQuery, AduDataSourceOptions> {
   async testDatasource() {
     const defaultErrorMessage = 'Cannot connect to API';
 
-    const response = this.request<UpdateList>('list-updates', 'GET', 'api-version=2022-10-01');
+    const response = this.request<UpdateList>('list-updates');
     const respSubscriber = response.subscribe({
       next(val) {
         if (val.status === 200) {
@@ -96,26 +97,30 @@ class DataSource extends DataSourceApi<MyQuery, AduDataSourceOptions> {
       throw new Error(`Unexpected HTTP Response from API: ${response.status} - ${response.statusText}`);
     }
 
+    console.log(response.data);
+
+    const frame: DataFrame = response.data.value;
+
     // Start Parsing the Response
-    let frame = new MutableDataFrame({
-      refId: refId,
-      fields: [],
-    });
+    // let frame = new MutableDataFrame({
+    //   refId: refId,
+    //   fields: [],
+    // });
 
-    let dataset_data: QuandlDataset = response.data.dataset_data as QuandlDataset;
-    for (const f of dataset_data.column_names) {
-      // The time series data set always has a date and then number fields.
-      // With tables we'll probably have to infer data types or just use xml because the xml format shows types. .
-      if (f === 'Date') {
-        frame.addField({ name: f, type: FieldType.time });
-      } else {
-        frame.addField({ name: f, type: FieldType.number });
-      }
-    }
+    // let dataset_data: QuandlDataset = response.data.dataset_data as QuandlDataset;
+    // for (const f of dataset_data.column_names) {
+    //   // The time series data set always has a date and then number fields.
+    //   // With tables we'll probably have to infer data types or just use xml because the xml format shows types. .
+    //   if (f === 'Date') {
+    //     frame.addField({ name: f, type: FieldType.time });
+    //   } else {
+    //     frame.addField({ name: f, type: FieldType.number });
+    //   }
+    // }
 
-    for (const r of dataset_data.data) {
-      frame.appendRow(r);
-    }
+    // for (const r of dataset_data.data) {
+    //   frame.appendRow(r);
+    // }
 
     // Alert the subscriber that we have new formatted data.
     // Not sure why I have to put it in an object with the array, but it seems to work.

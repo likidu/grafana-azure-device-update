@@ -1,21 +1,16 @@
 import { DataQuery, DataSourceJsonData } from '@grafana/data';
 
+export type ApiCategory = 'deviceManagement' | 'deviceUpdate';
+
 export interface MyQuery extends DataQuery {
-  deviceManagementParams: {
-    groupId?: string;
-    deploymentId?: string;
-  };
-  deviceUpdateParams: {
-    name?: string;
-    provider?: string;
-    version?: string;
-  };
+  apiCategory: ApiCategory;
+  apiPath: string;
   queryText?: string;
-  constant: number;
 }
 
 export const defaultQuery: Partial<MyQuery> = {
-  constant: 6.5,
+  apiCategory: 'deviceManagement',
+  apiPath: 'list-devices',
 };
 
 export interface DataPoint {
