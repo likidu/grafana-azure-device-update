@@ -5,6 +5,7 @@ export type ApiCategory = 'deviceManagement' | 'deviceUpdate';
 export interface MyQuery extends DataQuery {
   apiCategory: ApiCategory;
   apiPath: string;
+  apiParam?: string;
   queryText?: string;
 }
 

@@ -7,7 +7,7 @@ import {
   DataSourceApi,
   DataSourceInstanceSettings,
 } from '@grafana/data';
-import { FetchResponse, getBackendSrv, isFetchError } from '@grafana/runtime';
+import { FetchResponse, getBackendSrv, getTemplateSrv, isFetchError } from '@grafana/runtime';
 import { map, merge, Observable } from 'rxjs';
 
 import { UpdateList } from './models';
@@ -27,8 +27,12 @@ class DataSource extends DataSourceApi<MyQuery, AduDataSourceOptions> {
   query(options: DataQueryRequest<MyQuery>): Observable<DataQueryResponse> {
     const observableResponses: Array<Observable<DataQueryResponse>> = options.targets.map((target) => {
       const query = defaults(target, defaultQuery);
-      const { refId, apiPath } = query;
-      return this.request<UpdateList>(apiPath, 'GET').pipe(
+      const { refId, apiPath, apiParam } = query;
+
+      const param = apiParam && getTemplateSrv().replace(`$${apiParam}`, options.scopedVars);
+      console.log(param);
+
+      return this.request<UpdateList>(apiPath, 'GET', param).pipe(
         map((response) => this.handleTimeSeriesResponse(response, refId))
       );
     });
@@ -39,7 +43,7 @@ class DataSource extends DataSourceApi<MyQuery, AduDataSourceOptions> {
 
   request<T>(path: string, method: HttpMethod = 'GET', params?: string): Observable<FetchResponse<T>> {
     const result = getBackendSrv().fetch<T>({
-      url: `${this.instanceUrl}/${path}?api-version=2022-10-01${params?.length ? `&${params}` : ''}`,
+      url: `${this.instanceUrl}/${path}/${params?.length ? `${params}` : ''}?api-version=2022-10-01`,
       method,
     });
     return result;
@@ -96,8 +100,6 @@ class DataSource extends DataSourceApi<MyQuery, AduDataSourceOptions> {
     if (response.status !== 200) {
       throw new Error(`Unexpected HTTP Response from API: ${response.status} - ${response.statusText}`);
     }
-
-    console.log(response.data);
 
     const frame: DataFrame = response.data.value;
 

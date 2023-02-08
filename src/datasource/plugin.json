@@ -11,6 +11,11 @@
       "headers": [{ "name": "Authorization", "content": "Bearer {{ .SecureJsonData.azureAccessToken }}" }]
     },
     {
+      "path": "get-device",
+      "url": "https://{{ .JsonData.endpoint }}/deviceUpdate/{{ .JsonData.instanceName }}/management/devices",
+      "headers": [{ "name": "Authorization", "content": "Bearer {{ .SecureJsonData.azureAccessToken }}" }]
+    },
+    {
       "path": "list-devices",
       "url": "https://{{ .JsonData.endpoint }}/deviceUpdate/{{ .JsonData.instanceName }}/management/devices",
       "headers": [{ "name": "Authorization", "content": "Bearer {{ .SecureJsonData.azureAccessToken }}" }]
