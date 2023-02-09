@@ -27,10 +27,10 @@ class DataSource extends DataSourceApi<MyQuery, AduDataSourceOptions> {
   query(options: DataQueryRequest<MyQuery>): Observable<DataQueryResponse> {
     const observableResponses: Array<Observable<DataQueryResponse>> = options.targets.map((target) => {
       const query = defaults(target, defaultQuery);
+      console.log(query);
       const { refId, apiPath, apiParam } = query;
 
       const param = apiParam && getTemplateSrv().replace(`$${apiParam}`, options.scopedVars);
-      console.log(param);
 
       return this.request<UpdateList>(apiPath, 'GET', param).pipe(
         map((response) => this.handleTimeSeriesResponse(response, refId))

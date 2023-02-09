@@ -38,7 +38,6 @@ const ConfigEditor: React.FC<Props> = (props) => {
 
       <EndpointConfig options={options} onOptionsChange={onOptionsChange} updateJsonData={updateJsonData} />
 
-      <h3 className="page-heading">Authentication</h3>
       <AzureCredentialsConfig credentials={credentials} onCredentialsChange={onCredentialsChange} />
     </div>
   );

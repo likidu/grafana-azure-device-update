@@ -6,15 +6,15 @@ const concealed: ConcealedToken = Symbol('Concealed client secret');
 const concealedLegacy: ConcealedToken = Symbol('Concealed legacy client secret');
 
 function getSecret(options: DataSourceSettings<any, any>): undefined | string | ConcealedToken {
-  if (options.secureJsonFields.azureAccessToken) {
+  if (options.secureJsonFields.azureCrientSecret) {
     // The secret is concealed on server
     return concealed;
-  } else if (options.secureJsonFields.accessToken) {
+  } else if (options.secureJsonFields.clientSecret) {
     // A legacy secret field was preserved during migration
     return concealedLegacy;
   } else {
-    const token = options.secureJsonData?.azureAccessToken;
-    return typeof token === 'string' && token.length > 0 ? token : undefined;
+    const secret = options.secureJsonData?.azureCrientSecret;
+    return typeof secret === 'string' && secret.length > 0 ? secret : undefined;
   }
 }
 
@@ -28,7 +28,9 @@ export function getCredentials(options: DataSourceSettings<any, any>): AzureCred
 
   return {
     authType: credentials.authType,
-    accessToken: getSecret(options),
+    tenantId: credentials.tenantId,
+    clientId: credentials.clientId,
+    clientSecret: getSecret(options),
   };
 }
 
@@ -43,19 +45,21 @@ export function updateCredentials(
       ...options.jsonData,
       azureCredentials: {
         authType: credentials.authType,
+        tenantId: credentials.tenantId,
+        clientId: credentials.clientId,
       },
     },
     secureJsonData: {
       ...options.secureJsonData,
-      azureAccessToken:
-        typeof credentials.accessToken === 'string' && credentials.accessToken.length > 0
-          ? credentials.accessToken
+      azureCrientSecret:
+        typeof credentials.clientSecret === 'string' && credentials.clientSecret.length > 0
+          ? credentials.clientSecret
           : undefined,
     },
     secureJsonFields: {
       ...options.secureJsonFields,
-      azureAccessToken: credentials.accessToken === concealed,
-      accessToken: credentials.accessToken === concealedLegacy,
+      azureCrientSecret: credentials.clientSecret === concealed,
+      clientSecret: credentials.clientSecret === concealedLegacy,
     },
   };
 

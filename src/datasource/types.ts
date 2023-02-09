@@ -1,5 +1,7 @@
 import { DataQuery, DataSourceJsonData } from '@grafana/data';
 
+import { AzureCredentials } from './components/ConfigEditor/AzureCredentialsTypes';
+
 export type ApiCategory = 'deviceManagement' | 'deviceUpdate';
 
 export interface MyQuery extends DataQuery {
@@ -29,6 +31,7 @@ export interface AduDataSourceResponse {
 export interface AduDataSourceOptions extends DataSourceJsonData {
   endpoint: string;
   instanceName: string;
+  azureCredentials: AzureCredentials;
 }
 
 /**

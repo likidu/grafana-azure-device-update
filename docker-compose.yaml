@@ -9,6 +9,8 @@ services:
         grafana_version: ${GRAFANA_VERSION:-9.2.5}
     ports:
       - 3000:3000/tcp
+    environment:
+      - GF_INSTALL_PLUGINS=grafana-azure-data-explorer-datasource,speakyourcode-button-panel
     volumes:
       - ./dist:/var/lib/grafana/plugins/grafana-azure-device-update
       - ./provisioning:/etc/grafana/provisioning
