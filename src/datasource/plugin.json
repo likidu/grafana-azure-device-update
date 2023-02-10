@@ -4,6 +4,9 @@
   "name": "Azure Device Update for IoT Hub",
   "id": "azure-device-update-datasource",
   "metrics": true,
+  "queryOptions": {
+    "cacheTimeout": true
+  },
   "routes": [
     {
       "path": "list-updates",
