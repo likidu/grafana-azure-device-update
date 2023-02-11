@@ -6,11 +6,13 @@ import {
   DataQueryResponse,
   DataSourceApi,
   DataSourceInstanceSettings,
+  FieldType,
+  toDataFrame,
 } from '@grafana/data';
 import { FetchResponse, getBackendSrv, getTemplateSrv, isFetchError } from '@grafana/runtime';
 import { map, merge, Observable } from 'rxjs';
 
-import { UpdateList } from './models';
+import { Device, UpdateList } from './models';
 import { AduDataSourceOptions, defaultQuery, MyQuery } from './types';
 
 type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE';
@@ -27,13 +29,12 @@ class DataSource extends DataSourceApi<MyQuery, AduDataSourceOptions> {
   query(options: DataQueryRequest<MyQuery>): Observable<DataQueryResponse> {
     const observableResponses: Array<Observable<DataQueryResponse>> = options.targets.map((target) => {
       const query = defaults(target, defaultQuery);
-      console.log(query);
       const { refId, apiPath, apiParam } = query;
 
       const param = apiParam && getTemplateSrv().replace(`$${apiParam}`, options.scopedVars);
 
       return this.request<UpdateList>(apiPath, 'GET', param).pipe(
-        map((response) => this.handleTimeSeriesResponse(response, refId))
+        map((response) => this.handleTimeSeriesResponse(response, apiPath))
       );
     });
 
@@ -96,12 +97,33 @@ class DataSource extends DataSourceApi<MyQuery, AduDataSourceOptions> {
    * @param response FetchResponse
    * @param refId query RefId
    */
-  private handleTimeSeriesResponse(response: FetchResponse, refId: string): DataQueryResponse {
+  private handleTimeSeriesResponse(response: FetchResponse, apiPath: string): DataQueryResponse {
     if (response.status !== 200) {
       throw new Error(`Unexpected HTTP Response from API: ${response.status} - ${response.statusText}`);
     }
 
-    const frame: DataFrame = response.data.value;
+    const data = response.data.value ? response.data.value : response.data;
+
+    let frame: DataFrame;
+    switch (apiPath) {
+      case 'get-device':
+        const fields: Device = data;
+        frame = toDataFrame({
+          name: apiPath,
+          fields: [
+            { name: 'deviceId', type: FieldType.string, values: [fields.deviceId] },
+            { name: 'deviceClassId', type: FieldType.string, values: [fields.deviceClassId] },
+            { name: 'groupId', type: FieldType.string, values: [fields.groupId] },
+          ],
+        });
+        console.log(frame);
+        break;
+
+      default:
+        frame = data;
+        frame.name = apiPath;
+        break;
+    }
 
     // Start Parsing the Response
     // let frame = new MutableDataFrame({

@@ -41,7 +41,11 @@
     },
     {
       "type": "panel",
-      "name": "Azure Device Update for IoT Hub"
+      "name": "Azure Device Update - Deployment"
+    },
+    {
+      "type": "panel",
+      "name": "Simple Test"
     }
   ],
   "dependencies": {

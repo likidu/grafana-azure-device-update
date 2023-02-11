@@ -23,16 +23,16 @@ interface DeviceDeploymentState {
   Success: string;
 }
 
-interface Device {
-  deploymentStatus: DeviceDeploymentState;
+export interface Device {
+  deploymentStatus?: DeviceDeploymentState;
   deviceClassId: string;
   deviceId: string;
   groupId: string;
-  installedUpdate: UpdateInfo;
-  lastAttemptedUpdate: UpdateInfo;
-  lastDeploymentId: string;
-  lastInstallResult: InstallResult;
-  moudleId: string;
+  installedUpdate?: UpdateInfo;
+  lastAttemptedUpdate?: UpdateInfo;
+  lastDeploymentId?: string;
+  lastInstallResult?: InstallResult;
+  moudleId?: string;
   onLastUpdate: boolean;
 }
 

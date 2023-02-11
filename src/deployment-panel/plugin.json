@@ -1,11 +1,11 @@
 {
   "$schema": "https://raw.githubusercontent.com/grafana/grafana/master/docs/sources/developers/plugins/plugin.schema.json",
   "type": "panel",
-  "name": "Azure Device Update for IoT Hub",
-  "id": "azure-device-update-panel",
+  "name": "Azure Device Update - Deployment",
+  "id": "azure-device-update-deployment-panel",
   "info": {
     "keywords": ["panel", "azure"],
-    "description": "Showcase how to build a basic panel plugin",
+    "description": "Deploy firmware to a device",
     "author": {
       "name": "Your Name"
     },
