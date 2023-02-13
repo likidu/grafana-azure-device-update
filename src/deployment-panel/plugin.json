@@ -3,6 +3,7 @@
   "type": "panel",
   "name": "Azure Device Update - Deployment",
   "id": "azure-device-update-deployment-panel",
+  "skipDataQuery": true,
   "info": {
     "keywords": ["panel", "azure"],
     "description": "Deploy firmware to a device",

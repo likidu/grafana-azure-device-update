@@ -14,6 +14,8 @@ const AduPanel: FunctionComponent<Props> = ({ options, data, replaceVariables })
   const variable = replaceVariables('$deviceId');
   const { name: dataName, fields } = data.series[0];
 
+  console.log(variable);
+
   const getDisplayValues = (fieldName: string) => {
     const targetField = fields.find((field) => field.name === fieldName);
     return targetField?.values.toArray().map((value) => targetField.display!(value));

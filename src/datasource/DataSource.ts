@@ -31,7 +31,9 @@ class DataSource extends DataSourceApi<MyQuery, AduDataSourceOptions> {
       const query = defaults(target, defaultQuery);
       const { refId, apiPath, apiParam } = query;
 
-      const param = apiParam && getTemplateSrv().replace(`$${apiParam}`, options.scopedVars);
+      const param = apiParam && getTemplateSrv().replace(`$${apiParam}`, {});
+
+      console.log(param);
 
       return this.request<UpdateList>(apiPath, 'GET', param).pipe(
         map((response) => this.handleTimeSeriesResponse(response, apiPath))
@@ -116,7 +118,6 @@ class DataSource extends DataSourceApi<MyQuery, AduDataSourceOptions> {
             { name: 'groupId', type: FieldType.string, values: [fields.groupId] },
           ],
         });
-        console.log(frame);
         break;
 
       default:
