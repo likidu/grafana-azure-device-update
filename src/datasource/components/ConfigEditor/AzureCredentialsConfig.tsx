@@ -1,6 +1,7 @@
-import { Button, InlineField, Input } from '@grafana/ui';
+import { Button, FieldSet, InlineField, Input } from '@grafana/ui';
 import React, { ChangeEvent, FunctionComponent } from 'react';
 
+import { labelWidth } from 'datasource/constants';
 import { AzureCredentials } from './AzureCredentialsTypes';
 
 interface Props {
@@ -52,8 +53,13 @@ const AzureCredentialsConfig: FunctionComponent<Props> = (props) => {
   };
 
   return (
-    <div>
-      <InlineField label="Directory (tenant) ID" labelWidth={18} htmlFor="aad-tenant-id">
+    <FieldSet label="Authentication">
+      <InlineField
+        label="Directory (tenant) ID"
+        labelWidth={labelWidth}
+        htmlFor="aad-tenant-id"
+        tooltip="Active Directory App Tenant ID"
+      >
         <div className="width-15">
           <Input
             id="aad-tenant-id"
@@ -65,8 +71,12 @@ const AzureCredentialsConfig: FunctionComponent<Props> = (props) => {
           />
         </div>
       </InlineField>
-
-      <InlineField label="Application (client) ID" labelWidth={18} htmlFor="aad-client-id">
+      <InlineField
+        label="Application (client) ID"
+        labelWidth={labelWidth}
+        htmlFor="aad-client-id"
+        tooltip="Active Directory App Client ID"
+      >
         <div className="width-15">
           <Input
             id="aad-client-id"
@@ -80,7 +90,7 @@ const AzureCredentialsConfig: FunctionComponent<Props> = (props) => {
       </InlineField>
 
       {typeof credentials.clientSecret === 'symbol' ? (
-        <InlineField label="Client Secret" labelWidth={18} htmlFor="aad-client-secret-configured">
+        <InlineField label="Client Secret" labelWidth={labelWidth} htmlFor="aad-client-secret-configured">
           <div className="width-30" style={{ display: 'flex', gap: '4px' }}>
             <Input
               id="aad-client-secret-configured"
@@ -94,7 +104,7 @@ const AzureCredentialsConfig: FunctionComponent<Props> = (props) => {
           </div>
         </InlineField>
       ) : (
-        <InlineField label="Client Secret" labelWidth={18} htmlFor="aad-client-secret">
+        <InlineField label="Client Secret" labelWidth={labelWidth} htmlFor="aad-client-secret">
           <Input
             id="aad-client-secret"
             className="width-30"
@@ -105,7 +115,7 @@ const AzureCredentialsConfig: FunctionComponent<Props> = (props) => {
           />
         </InlineField>
       )}
-    </div>
+    </FieldSet>
   );
 };
 

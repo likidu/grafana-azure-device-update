@@ -1,116 +1,156 @@
+import defaults from 'lodash/defaults';
+
 import {
+  DataFrame,
   DataQueryRequest,
   DataQueryResponse,
   DataSourceApi,
   DataSourceInstanceSettings,
   FieldType,
-  MutableDataFrame,
+  toDataFrame,
 } from '@grafana/data';
-import { getBackendSrv, isFetchError } from '@grafana/runtime';
-import _ from 'lodash';
-import defaults from 'lodash/defaults';
-import { lastValueFrom } from 'rxjs';
-import { DataSourceResponse, defaultQuery, MyDataSourceOptions, MyQuery } from './types';
+import { FetchResponse, getBackendSrv, getTemplateSrv, isFetchError } from '@grafana/runtime';
+import { map, merge, Observable } from 'rxjs';
 
-export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
-  baseUrl: string;
+import { Device, UpdateList } from './models';
+import { AduDataSourceOptions, defaultQuery, MyQuery } from './types';
 
-  constructor(instanceSettings: DataSourceInstanceSettings<MyDataSourceOptions>) {
+type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE';
+
+class DataSource extends DataSourceApi<MyQuery, AduDataSourceOptions> {
+  private instanceUrl?: string;
+
+  constructor(instanceSettings: DataSourceInstanceSettings<AduDataSourceOptions>) {
     super(instanceSettings);
 
-    this.baseUrl = instanceSettings.url!;
+    this.instanceUrl = instanceSettings.url;
   }
 
-  async query(options: DataQueryRequest<MyQuery>): Promise<DataQueryResponse> {
-    const promises = options.targets.map(async (target) => {
+  query(options: DataQueryRequest<MyQuery>): Observable<DataQueryResponse> {
+    const observableResponses: Array<Observable<DataQueryResponse>> = options.targets.map((target) => {
       const query = defaults(target, defaultQuery);
-      const response = await this.request('/api/metrics', `query=${query.queryText}`);
+      const { refId, apiPath, apiParam } = query;
 
-      /**
-       * In this example, the /api/metrics endpoint returns:
-       *
-       * {
-       *   "datapoints": [
-       *     {
-       *       Time: 1234567891011,
-       *       Value: 12.5
-       *     },
-       *     {
-       *     ...
-       *   ]
-       * }
-       */
-      const datapoints = response.data.datapoints;
-      if (datapoints === undefined) {
-        throw new Error('Remote endpoint reponse does not contain "datapoints" property.');
-      }
+      const param = apiParam && getTemplateSrv().replace(`$${apiParam}`, {});
 
-      const timestamps: number[] = [];
-      const values: number[] = [];
+      console.log(param);
 
-      for (let i = 0; i < datapoints.length; i++) {
-        if (datapoints[i].Time === undefined) {
-          throw new Error(`Data point ${i} does not contain "Time" property`);
-        }
-        if (datapoints[i].Value === undefined) {
-          throw new Error(`Data point ${i} does not contain "Value" property`);
-        }
-        timestamps.push(datapoints[i].Time);
-        values.push(datapoints[i].Value);
-      }
-
-      return new MutableDataFrame({
-        refId: query.refId,
-        fields: [
-          { name: 'Time', type: FieldType.time, values: timestamps },
-          { name: 'Value', type: FieldType.number, values: values },
-        ],
-      });
+      return this.request<UpdateList>(apiPath, 'GET', param).pipe(
+        map((response) => this.handleTimeSeriesResponse(response, apiPath))
+      );
     });
 
-    return Promise.all(promises).then((data) => ({ data }));
+    // The query function only returns one observable. we use merge to combine them all?
+    return merge(...observableResponses);
   }
 
-  async request(url: string, params?: string) {
-    const response = getBackendSrv().fetch<DataSourceResponse>({
-      url: `${this.baseUrl}${url}${params?.length ? `?${params}` : ''}`,
+  request<T>(path: string, method: HttpMethod = 'GET', params?: string): Observable<FetchResponse<T>> {
+    const result = getBackendSrv().fetch<T>({
+      url: `${this.instanceUrl}/${path}/${params?.length ? `${params}` : ''}?api-version=2022-10-01`,
+      method,
     });
-    return lastValueFrom(response);
+    return result;
   }
 
   /**
-   * Checks whether we can connect to the API.
+   * Checks whether we can connect to the API by calling one of the them.
    */
   async testDatasource() {
     const defaultErrorMessage = 'Cannot connect to API';
 
-    try {
-      const response = await this.request('/healthz');
-      if (response.status === 200) {
-        return {
-          status: 'success',
-          message: 'Success',
-        };
-      } else {
+    const response = this.request<UpdateList>('list-updates');
+    const respSubscriber = response.subscribe({
+      next(val) {
+        if (val.status === 200) {
+          return {
+            status: 'success',
+            message: 'Success',
+          };
+        } else {
+          return {
+            status: 'error',
+            message: val.statusText ? val.statusText : defaultErrorMessage,
+          };
+        }
+      },
+      error(err) {
+        let message = '';
+        if (typeof err === 'string') {
+          message = err;
+        } else if (isFetchError(err)) {
+          message = 'Fetch error: ' + (err.statusText ? err.statusText : defaultErrorMessage);
+          if (err.data && err.data.error && err.data.error.code) {
+            message += ': ' + err.data.error.code + '. ' + err.data.error.message;
+          }
+        }
         return {
           status: 'error',
-          message: response.statusText ? response.statusText : defaultErrorMessage,
+          message,
         };
-      }
-    } catch (err) {
-      let message = '';
-      if (_.isString(err)) {
-        message = err;
-      } else if (isFetchError(err)) {
-        message = 'Fetch error: ' + (err.statusText ? err.statusText : defaultErrorMessage);
-        if (err.data && err.data.error && err.data.error.code) {
-          message += ': ' + err.data.error.code + '. ' + err.data.error.message;
-        }
-      }
-      return {
-        status: 'error',
-        message,
-      };
+      },
+      complete() {
+        respSubscriber.unsubscribe();
+      },
+    });
+  }
+
+  /**
+   * Process responses from a timeseries api call. We need to receive the refId as well, because we add it to the data frame.
+   * @param response FetchResponse
+   * @param refId query RefId
+   */
+  private handleTimeSeriesResponse(response: FetchResponse, apiPath: string): DataQueryResponse {
+    if (response.status !== 200) {
+      throw new Error(`Unexpected HTTP Response from API: ${response.status} - ${response.statusText}`);
     }
+
+    const data = response.data.value ? response.data.value : response.data;
+
+    let frame: DataFrame;
+    switch (apiPath) {
+      case 'get-device':
+        const fields: Device = data;
+        frame = toDataFrame({
+          name: apiPath,
+          fields: [
+            { name: 'deviceId', type: FieldType.string, values: [fields.deviceId] },
+            { name: 'deviceClassId', type: FieldType.string, values: [fields.deviceClassId] },
+            { name: 'groupId', type: FieldType.string, values: [fields.groupId] },
+          ],
+        });
+        break;
+
+      default:
+        frame = data;
+        frame.name = apiPath;
+        break;
+    }
+
+    // Start Parsing the Response
+    // let frame = new MutableDataFrame({
+    //   refId: refId,
+    //   fields: [],
+    // });
+
+    // let dataset_data: QuandlDataset = response.data.dataset_data as QuandlDataset;
+    // for (const f of dataset_data.column_names) {
+    //   // The time series data set always has a date and then number fields.
+    //   // With tables we'll probably have to infer data types or just use xml because the xml format shows types. .
+    //   if (f === 'Date') {
+    //     frame.addField({ name: f, type: FieldType.time });
+    //   } else {
+    //     frame.addField({ name: f, type: FieldType.number });
+    //   }
+    // }
+
+    // for (const r of dataset_data.data) {
+    //   frame.appendRow(r);
+    // }
+
+    // Alert the subscriber that we have new formatted data.
+    // Not sure why I have to put it in an object with the array, but it seems to work.
+    return { data: [frame] };
   }
 }
+
+export default DataSource;

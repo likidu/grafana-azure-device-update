@@ -1,19 +1,27 @@
 import { DataQuery, DataSourceJsonData } from '@grafana/data';
 
+import { AzureCredentials } from './components/ConfigEditor/AzureCredentialsTypes';
+
+export type ApiCategory = 'deviceManagement' | 'deviceUpdate';
+
 export interface MyQuery extends DataQuery {
+  apiCategory: ApiCategory;
+  apiPath: string;
+  apiParam?: string;
   queryText?: string;
-  constant: number;
 }
 
 export const defaultQuery: Partial<MyQuery> = {
-  constant: 6.5,
+  apiCategory: 'deviceManagement',
+  apiPath: 'list-devices',
 };
 
 export interface DataPoint {
   Time: number;
   Value: number;
 }
-export interface DataSourceResponse {
+
+export interface AduDataSourceResponse {
   datapoints: DataPoint[];
 }
 
@@ -21,12 +29,14 @@ export interface DataSourceResponse {
  * These are options configured for each DataSource instance
  */
 export interface AduDataSourceOptions extends DataSourceJsonData {
-  path?: string;
+  endpoint: string;
+  instanceName: string;
+  azureCredentials: AzureCredentials;
 }
 
 /**
  * Value that is used in the backend, but never sent over HTTP to the frontend
  */
 export interface AduDataSourceSecureOptions {
-  azureClientSecret?: string;
+  azureAccessToken?: string;
 }

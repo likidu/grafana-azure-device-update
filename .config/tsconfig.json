@@ -3,14 +3,15 @@
  *
  * In order to extend the configuration follow the steps in .config/README.md
  */
- {
+{
   "compilerOptions": {
     "alwaysStrict": true,
     "declaration": false,
     "rootDir": "../src",
     "baseUrl": "../src",
     "typeRoots": ["../node_modules/@types"],
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "esModuleInterop": true
   },
   "ts-node": {
     "compilerOptions": {

@@ -1,9 +1,8 @@
-export type ConcealedSecret = symbol;
+export type ConcealedToken = symbol;
 
-export interface AzureClientSecretCredentials {
+export type AzureCredentials = {
+  authType: 'clientsecret';
   tenantId?: string;
   clientId?: string;
-  clientSecret?: string | ConcealedSecret;
-}
-
-export type AzureCredentials = AzureClientSecretCredentials;
+  clientSecret?: string | ConcealedToken;
+};

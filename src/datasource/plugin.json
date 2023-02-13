@@ -4,6 +4,63 @@
   "name": "Azure Device Update for IoT Hub",
   "id": "azure-device-update-datasource",
   "metrics": true,
+  "queryOptions": {
+    "cacheTimeout": true
+  },
+  "routes": [
+    {
+      "path": "list-updates",
+      "url": "https://{{ .JsonData.endpoint }}/deviceUpdate/{{ .JsonData.instanceName }}/updates",
+      "tokenAuth": {
+        "url": "https://login.microsoftonline.com/{{ .JsonData.azureCredentials.tenantId }}/oauth2/v2.0/token",
+        "params": {
+          "grant_type": "client_credentials",
+          "client_id": "{{ .JsonData.azureCredentials.clientId }}",
+          "client_secret": "{{ .SecureJsonData.azureCrientSecret }}",
+          "scope": "https://api.adu.microsoft.com/.default"
+        }
+      }
+    },
+    {
+      "path": "get-device",
+      "url": "https://{{ .JsonData.endpoint }}/deviceUpdate/{{ .JsonData.instanceName }}/management/devices",
+      "tokenAuth": {
+        "url": "https://login.microsoftonline.com/{{ .JsonData.azureCredentials.tenantId }}/oauth2/v2.0/token",
+        "params": {
+          "grant_type": "client_credentials",
+          "client_id": "{{ .JsonData.azureCredentials.clientId }}",
+          "client_secret": "{{ .SecureJsonData.azureCrientSecret }}",
+          "scope": "https://api.adu.microsoft.com/.default"
+        }
+      }
+    },
+    {
+      "path": "list-devices",
+      "url": "https://{{ .JsonData.endpoint }}/deviceUpdate/{{ .JsonData.instanceName }}/management/devices",
+      "tokenAuth": {
+        "url": "https://login.microsoftonline.com/{{ .JsonData.azureCredentials.tenantId }}/oauth2/v2.0/token",
+        "params": {
+          "grant_type": "client_credentials",
+          "client_id": "{{ .JsonData.azureCredentials.clientId }}",
+          "client_secret": "{{ .SecureJsonData.azureCrientSecret }}",
+          "scope": "https://api.adu.microsoft.com/.default"
+        }
+      }
+    },
+    {
+      "path": "list-device-classes",
+      "url": "https://{{ .JsonData.endpoint }}/deviceUpdate/{{ .JsonData.instanceName }}/management/deviceClasses",
+      "tokenAuth": {
+        "url": "https://login.microsoftonline.com/{{ .JsonData.azureCredentials.tenantId }}/oauth2/v2.0/token",
+        "params": {
+          "grant_type": "client_credentials",
+          "client_id": "{{ .JsonData.azureCredentials.clientId }}",
+          "client_secret": "{{ .SecureJsonData.azureCrientSecret }}",
+          "scope": "https://api.adu.microsoft.com/.default"
+        }
+      }
+    }
+  ],
   "info": {
     "description": "",
     "author": {
