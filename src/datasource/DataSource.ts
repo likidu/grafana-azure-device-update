@@ -12,10 +12,9 @@ import {
 import { FetchResponse, getBackendSrv, getTemplateSrv, isFetchError } from '@grafana/runtime';
 import { map, merge, Observable } from 'rxjs';
 
+import { HttpMethod } from 'models';
 import { Device, UpdateList } from './models';
 import { AduDataSourceOptions, defaultQuery, MyQuery } from './types';
-
-type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE';
 
 class DataSource extends DataSourceApi<MyQuery, AduDataSourceOptions> {
   private instanceUrl?: string;
@@ -29,7 +28,7 @@ class DataSource extends DataSourceApi<MyQuery, AduDataSourceOptions> {
   query(options: DataQueryRequest<MyQuery>): Observable<DataQueryResponse> {
     const observableResponses: Array<Observable<DataQueryResponse>> = options.targets.map((target) => {
       const query = defaults(target, defaultQuery);
-      const { refId, apiPath, apiParam } = query;
+      const { apiPath, apiParam } = query;
 
       const param = apiParam && getTemplateSrv().replace(`$${apiParam}`, {});
 

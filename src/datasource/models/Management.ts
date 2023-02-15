@@ -39,3 +39,14 @@ export interface Device {
 export interface DeviceList extends AduResponse {
   value: Device[];
 }
+
+export interface Deployment {
+  deploymentId: string;
+  deviceClassSubgroups: string[];
+  groupId: string;
+  isCanceled: boolean;
+  isCloudInitiatedRollback: boolean;
+  isRetried: boolean;
+  startDateTime: string;
+  update: UpdateInfo;
+}

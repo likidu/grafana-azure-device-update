@@ -1,25 +1,53 @@
 import { PanelProps } from '@grafana/data';
-import { Button, Card } from '@grafana/ui';
-import React, { FunctionComponent } from 'react';
+import { FetchResponse, getBackendSrv } from '@grafana/runtime';
+import { Alert, Button, Card } from '@grafana/ui';
+import React, { Fragment, FunctionComponent, useEffect, useState } from 'react';
+import { lastValueFrom } from 'rxjs';
 
+import { Deployment, Device } from 'datasource/models';
+import { HttpMethod } from 'models';
 import { Options } from '../types';
 
-const duLogo = require('../img/du-logo.png');
+const logo = require('../img/du-logo.png');
 
 interface Props extends PanelProps<Options> {}
 
-const AduPanel: FunctionComponent<Props> = ({ options, data, replaceVariables }) => {
-  // Only accepts API call from get-device
-  const apiPathName = 'get-device';
+const AduPanel: FunctionComponent<Props> = ({ options, replaceVariables }) => {
   const variable = replaceVariables('$deviceId');
-  const { name: dataName, fields } = data.series[0];
 
-  console.log(variable);
+  const [deviceId, setDeviceId] = useState('');
+  const [device, setDevice] = useState<Device>();
 
-  const getDisplayValues = (fieldName: string) => {
-    const targetField = fields.find((field) => field.name === fieldName);
-    return targetField?.values.toArray().map((value) => targetField.display!(value));
+  const request = <T,>(path: string, method: HttpMethod = 'GET', params?: string): Promise<FetchResponse<T>> => {
+    // TODO: The '1' seems to be too hard coded?
+    const result = getBackendSrv().fetch<T>({
+      url: `/api/datasources/proxy/1/${path}/${params?.length ? `${params}` : ''}?api-version=2022-10-01`,
+      method,
+    });
+    return lastValueFrom(result);
   };
+
+  const onCreateDeployment = async (groupId: string) => {
+    const deploymentId = '12354';
+    try {
+      const { data } = await request<Deployment>('create-deployment', 'PUT', `${groupId}/deployments/${deploymentId}`);
+    } catch (error) {}
+  };
+
+  useEffect(() => {
+    setDeviceId(variable);
+  }, [deviceId, variable]);
+
+  useEffect(() => {
+    if (deviceId !== '') {
+      (async () => {
+        try {
+          const { data } = await request<Device>('get-device', 'GET', deviceId);
+          setDevice(data);
+        } catch (error) {}
+      })();
+    }
+  }, [deviceId]);
 
   return (
     <Card>
@@ -36,21 +64,30 @@ const AduPanel: FunctionComponent<Props> = ({ options, data, replaceVariables })
         </a>
       </Card.Meta>
       <Card.Figure>
-        <img src={duLogo} alt="DU Logo" height={40} width={40} />
+        <img src={logo} alt="DU Logo" height={40} width={40} />
       </Card.Figure>
-      <Card.Description>
-        {dataName === apiPathName && variable && (
-          <div>
-            <p>{getDisplayValues('deviceId')![0].text}</p>
-            <p>{getDisplayValues('groupId')![0].text}</p>
-          </div>
-        )}
-      </Card.Description>
-      <Card.Actions>
-        <Button>Deploy</Button>
-        <Button variant="destructive">Stop</Button>
-        <Button variant="secondary">Cancel</Button>
-      </Card.Actions>
+      {deviceId !== '' && device ? (
+        <Fragment>
+          <Card.Description>
+            <div>
+              <p>{device.deviceId}</p>
+              <p>{device.groupId}</p>
+            </div>
+          </Card.Description>
+          <Card.Actions>
+            <Button onClick={onCreateDeployment(device.groupId)}>Deploy</Button>
+            <Button variant="destructive">Stop</Button>
+            <Button variant="secondary">Cancel</Button>
+          </Card.Actions>
+        </Fragment>
+      ) : (
+        <Alert title="No deviceId variable for the dashboard" severity="error">
+          <p>
+            Please set the <strong>$deviceId</strong> variable for the dashboard. This panel requires it to fetch the
+            corresponding device info from the Device Update for IoT Hub.
+          </p>
+        </Alert>
+      )}
     </Card>
   );
 };

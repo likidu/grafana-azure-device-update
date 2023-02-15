@@ -37,11 +37,13 @@
     {
       "type": "datasource",
       "name": "Azure Device Update for IoT Hub",
-      "role": "Admin"
+      "role": "Admin",
+      "uid": "4xo7AiioR"
     },
     {
       "type": "panel",
-      "name": "Azure Device Update - Deployment"
+      "name": "Azure Device Update - Deployment",
+      "uid": "GGqsih3f4"
     },
     {
       "type": "panel",
