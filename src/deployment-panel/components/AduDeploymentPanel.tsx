@@ -1,8 +1,9 @@
 import { PanelProps } from '@grafana/data';
 import { FetchResponse, getBackendSrv } from '@grafana/runtime';
 import { Alert, Button, Card } from '@grafana/ui';
-import React, { Fragment, FunctionComponent, useEffect, useState } from 'react';
+import React, { FunctionComponent, useEffect, useState } from 'react';
 import { lastValueFrom } from 'rxjs';
+import uuid4 from 'uuid4';
 
 import { Deployment, Device } from 'datasource/models';
 import { HttpMethod } from 'models';
@@ -28,7 +29,7 @@ const AduPanel: FunctionComponent<Props> = ({ options, replaceVariables }) => {
   };
 
   const onCreateDeployment = async (groupId: string) => {
-    const deploymentId = '12354';
+    const deploymentId = uuid4();
     try {
       const { data } = await request<Deployment>('create-deployment', 'PUT', `${groupId}/deployments/${deploymentId}`);
     } catch (error) {}
@@ -53,6 +54,7 @@ const AduPanel: FunctionComponent<Props> = ({ options, replaceVariables }) => {
     <Card>
       <Card.Heading>
         <h4>Firmware deployment</h4>
+        <p>Device: {device}</p>
       </Card.Heading>
       <Card.Meta>
         {['Link to Azure Portal']}
@@ -66,28 +68,26 @@ const AduPanel: FunctionComponent<Props> = ({ options, replaceVariables }) => {
       <Card.Figure>
         <img src={logo} alt="DU Logo" height={40} width={40} />
       </Card.Figure>
-      {deviceId !== '' && device ? (
-        <Fragment>
-          <Card.Description>
-            <div>
-              <p>{device.deviceId}</p>
-              <p>{device.groupId}</p>
-            </div>
-          </Card.Description>
-          <Card.Actions>
-            <Button onClick={onCreateDeployment(device.groupId)}>Deploy</Button>
-            <Button variant="destructive">Stop</Button>
-            <Button variant="secondary">Cancel</Button>
-          </Card.Actions>
-        </Fragment>
-      ) : (
-        <Alert title="No deviceId variable for the dashboard" severity="error">
-          <p>
-            Please set the <strong>$deviceId</strong> variable for the dashboard. This panel requires it to fetch the
-            corresponding device info from the Device Update for IoT Hub.
-          </p>
-        </Alert>
-      )}
+      <Card.Description>
+        {deviceId !== '' && device ? (
+          <div>
+            <p>{device.deviceId}</p>
+            <p>{device.groupId}</p>
+          </div>
+        ) : (
+          <Alert title="No deviceId variable for the dashboard" severity="error">
+            <p>
+              Please set the <strong>$deviceId</strong> variable for the dashboard. This panel requires it to fetch the
+              corresponding device info from the Device Update for IoT Hub.
+            </p>
+          </Alert>
+        )}
+      </Card.Description>
+      <Card.Actions>
+        <Button onClick={() => onCreateDeployment(device.groupId)}>Deploy</Button>
+        <Button variant="destructive">Stop</Button>
+        <Button variant="secondary">Cancel</Button>
+      </Card.Actions>
     </Card>
   );
 };
