@@ -35,26 +35,52 @@ const AduPanel: FunctionComponent<Props> = ({ options, replaceVariables }) => {
     } catch (error) {}
   };
 
+  // Update deviceId state based on the variable deviceId
   useEffect(() => {
     setDeviceId(variable);
   }, [deviceId, variable]);
 
+  // Get device information
+  // https://learn.microsoft.com/en-us/rest/api/deviceupdate/2022-10-01/device-management/get-device?tabs=HTTP
   useEffect(() => {
     if (deviceId !== '') {
       (async () => {
         try {
           const { data } = await request<Device>('get-device', 'GET', deviceId);
-          setDevice(data);
-        } catch (error) {}
+          console.log(data);
+          setDevice({ ...data, ...(!data.groupId && { groupId: '$default' }) });
+          // setDevice(data);
+        } catch (error) {
+          setDevice(undefined);
+        }
       })();
     }
   }, [deviceId]);
+
+  // Get best updates for device class subgroup
+  // https://learn.microsoft.com/en-us/rest/api/deviceupdate/2022-10-01/device-management/get-best-updates-for-device-class-subgroup?tabs=HTTP
+  // useEffect(() => {
+  //   if (device) {
+  //     (async () => {
+  //       try {
+  //         const { data } = await request<Device>(
+  //           'get-best-updates',
+  //           'GET',
+  //           `${device?.groupId}/deviceClassSubgroups/${device?.deviceClassId}/bestUpdates`
+  //         );
+  //         console.log(data);
+  //         setDevice(data);
+  //       } catch (error) {
+  //         setDevice(undefined);
+  //       }
+  //     })();
+  //   }
+  // }, [device]);
 
   return (
     <Card>
       <Card.Heading>
         <h4>Firmware deployment</h4>
-        <p>Device: {device}</p>
       </Card.Heading>
       <Card.Meta>
         {['Link to Azure Portal']}
@@ -72,6 +98,7 @@ const AduPanel: FunctionComponent<Props> = ({ options, replaceVariables }) => {
         {deviceId !== '' && device ? (
           <div>
             <p>{device.deviceId}</p>
+            <p>{device.deviceClassId}</p>
             <p>{device.groupId}</p>
           </div>
         ) : (
